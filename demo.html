@@ -48,10 +48,76 @@ document.getElementById('loginForm').onsubmit=async e=>{e.preventDefault();const
 }
 async function loadOnline(){const r=await api('load');weeks=r.weeks||initial();version=r.version;selected=Math.min(selected,weeks.length-1);dirty=false}
 async function boot(){languageUI();document.getElementById('app').innerHTML='<p>'+ui().loading+'</p>';try{const r=await api('me');user=r.user;csrfToken=r.csrf;if(!user){loginScreen();return}await loadOnline();readonly=user.role!=='owner';render()}catch(e){loginScreen(errorMessage(e))}}
+function renderWeek3Video() {
+  // Array index 2 represents week 3.
+  if (selected !== 2) return;
+
+  const labels = {
+    de: {
+      title: "Woche 3 · Bildschirmaufnahme vom Smartphone",
+      note: "Forest Planner mit Expo Go auf meinem eigenen Smartphone.",
+      open: "Video separat öffnen"
+    },
+    en: {
+      title: "Week 3 · Phone screen recording",
+      note: "Forest Planner running in Expo Go on my own phone.",
+      open: "Open video separately"
+    },
+    fa: {
+      title: "هفتهٔ سوم · فیلم اجرای برنامه روی گوشی",
+      note: "اجرای Forest Planner با Expo Go روی گوشی خودم.",
+      open: "بازکردن فیلم در صفحهٔ جدا"
+    }
+  };
+
+  const label = labels[lang] || labels.en;
+
+  const videoUrl = new URL(
+    "media/forest-planner-mobile-demo.mp4",
+    document.baseURI
+  ).href;
+
+  const section = document.createElement("section");
+  section.className = "section";
+
+  section.innerHTML = `
+    <h3>${esc(label.title)}</h3>
+    <p>${esc(label.note)}</p>
+
+    <video
+      controls
+      playsinline
+      preload="metadata"
+      style="
+        display: block;
+        width: 100%;
+        max-height: 560px;
+        margin: 16px auto;
+        background: #111;
+        border-radius: 12px;
+      "
+    >
+      <source src="${esc(videoUrl)}" type="video/mp4">
+      Your browser does not support video playback.
+    </video>
+
+    <a
+      href="${esc(videoUrl)}"
+      target="_blank"
+      rel="noopener"
+    >
+      ${esc(label.open)}
+    </a>
+  `;
+
+  document.querySelector("#app article .links")?.after(section);
+}
 function render(){
 if(!user){loginScreen();return}
 const t=translations[lang],u=ui();t.local=u.liveNote;t.all=u.viewNote;t.published=u.viewer;t.print=u.export;
-renderBase();document.getElementById('footer').textContent=u.secure;
+renderBase();
+renderWeek3Video();
+document.getElementById('footer').textContent = u.secure;
 document.getElementById('account').innerHTML=`<small>${esc(user.email)} · ${readonly?u.viewer:u.owner}<br><span id="syncStatus" role="status">${dirty?u.pending:u.saved}</span></small><div class="actions" style="margin:0"><button class="primary" id="allPDF">${u.pdf}</button><button id="logout">${u.logout}</button></div>`;
 document.getElementById('allPDF').onclick=()=>printReports(false);
 document.getElementById('print').onclick=()=>printReports(true);
@@ -75,7 +141,58 @@ document.getElementById('language').onchange=e=>{lang=e.target.value;render()};
 /* Preview: no polling */ false && setInterval(async()=>{if(!user||dirty||saving||document.hidden)return;try{const r=await api('load');if(r.version!==version){weeks=r.weeks||initial();version=r.version;selected=Math.min(selected,weeks.length-1);render()}else setStatus(ui().saved)}catch(e){setStatus(errorMessage(e),true)}},15000);
 
 const weeklyReports={"de":[{"learned":"Meine persönliche Portfolio-Website hatte ich bereits vor Erhalt der Aufgaben erstellt und auf GitHub Pages veröffentlicht. Ich möchte sie als Ergebnis für Woche 1 zur Prüfung einreichen. Falls ein neues Projekt erwartet wird, erstelle ich gerne eine neue Website.\n\nBei der aktuellen Arbeit habe ich Git geübt: ein Repository mit git clone herunterladen, Dateien mit git add vorbereiten, Änderungen mit git commit speichern und mit git push hochladen. Als KI-Helfer habe ich ChatGPT verwendet.","problems":"Zunächst habe ich clone statt git clone eingegeben. Später wurden Dateien als untracked angezeigt und waren noch nicht für einen Commit vorgemerkt. Mit schrittweisen Erklärungen von ChatGPT habe ich die Meldungen verstanden und die Dateien mit git add, git commit und git push erfolgreich hochgeladen.","prompts":"Hilfreich waren konkrete Fragen zu Git-Fehlermeldungen und die Bitte um schrittweise Erklärungen. Die genaue Terminal-Ausgabe als Kontext hat bei der Fehlersuche geholfen. Diese Beschreibung fasst meine Fragen zusammen; sie ist kein wörtliches Prompt-Protokoll.","next":"Branches gezielt üben. Die Grundlagen von HTML/CSS weiter vertiefen. Rückmeldung einholen, ob die bereits vorher erstellte Portfolio-Website für diese Aufgabe akzeptiert wird.","other":"Zeitaufwand: geschätzt etwa 6 Stunden für dieses Projekt. Die Website entstand bereits vor der Aufgabenstellung; die Angabe ist keine minutengenaue Zeiterfassung. Live-Link und Repository sind unten verlinkt."},{"learned":"Ich habe mit Unterstützung von ChatGPT an Forest Planner gearbeitet. Die App verwendet React und Vite und ist über GitHub Pages erreichbar. Ich habe gelernt, dass ein Repository den Code enthält, die Veröffentlichung aber zusätzlich einen Build und ein Deployment benötigt.\n\nIch verstehe die grundsätzliche Struktur und die Aufgaben der Dateien. Wegen des Umfangs habe ich noch nicht alle Codezeilen im Detail geprüft und kann noch nicht jede Datei vollständig erklären.","problems":"Eine Herausforderung war, aus dem hochgeladenen Code eine erreichbare Anwendung zu machen. Mit Hilfe von ChatGPT habe ich GitHub Pages aktiviert und einen GitHub-Actions-Workflow eingerichtet. Der Build berücksichtigt den Projektpfad /Forest-Planner/. Der Workflow lief erfolgreich durch und die Anwendung ließ sich über den öffentlichen Link öffnen.","prompts":"Hilfreich waren Fragen wie: Wie veröffentliche ich dieses React-/Vite-Projekt auf GitHub Pages? Außerdem haben das Teilen von package.json und Screenshots sowie schrittweise Anleitungen geholfen. Die Beispiele sind sinngemäß zusammengefasst.","next":"Die Projektdateien systematisch durchgehen und wichtige Funktionen selbst erklären lernen. Das Speichern und erneute Laden der App-Daten gezielt überprüfen. Rückmeldung zur Übereinstimmung mit der Aufgabe einholen; bei Bedarf das Projekt anpassen oder neu umsetzen. Die Anforderung, jede Datei erklären zu können, ist noch nicht vollständig erfüllt.","other":"Zeitaufwand: geschätzt etwa 6 Stunden für dieses Projekt. KI-Helfer: ChatGPT. Die App ist veröffentlicht; das vertiefte Verständnis des Codes ist noch in Arbeit."}],"en":[{"learned":"I created and published my personal portfolio website on GitHub Pages before receiving the assignments. I would like to submit it for week 1 for review. If a new project is expected, I am happy to build a new website.\n\nDuring the current work I practised Git: cloning a repository, staging files with git add, recording changes with git commit and uploading them with git push. I used ChatGPT as my AI helper.","problems":"I initially typed clone instead of git clone. Later, files appeared as untracked and had not been staged for a commit. Step-by-step explanations from ChatGPT helped me understand the messages and upload the files using git add, git commit and git push.","prompts":"Specific questions about Git errors and requests for step-by-step explanations were useful. Sharing the exact terminal output provided helpful context. This is a summary of my questions rather than a verbatim prompt log.","next":"Practise branches and deepen my HTML/CSS knowledge. Ask whether the previously created portfolio website is acceptable for this assignment.","other":"Estimated time: about 6 hours for this project. The website predates the assignment; this is an estimate rather than a precise time log. The live site and repository are linked below."},{"learned":"I worked on Forest Planner with help from ChatGPT. The app uses React and Vite and is available on GitHub Pages. I learned that uploading code to a repository is separate from building and deploying a working application.\n\nI understand the overall structure and the purpose of the files. Because of the amount of code, I have not reviewed every line in detail and cannot yet explain every file fully.","problems":"Turning the uploaded code into a live application was a challenge. With ChatGPT’s help, I enabled GitHub Pages and added a GitHub Actions workflow. The build uses the /Forest-Planner/ project path. The workflow completed successfully and I opened the app using its public link.","prompts":"Questions such as how to publish this React/Vite project on GitHub Pages were helpful. Sharing package.json and screenshots, and asking for step-by-step instructions, also helped. These examples are paraphrased.","next":"Review the project files systematically and learn to explain the main functions independently. Specifically verify saving and reloading app data. Request feedback on whether the app meets the assignment; adapt or rebuild it if needed. The requirement to explain every file is not yet fully met.","other":"Estimated time: about 6 hours for this project. AI helper: ChatGPT. The app is published; detailed understanding of the code is still in progress."}],"fa":[{"learned":"سایت شخصی پورتفولیو را پیش از دریافت تمرین‌ها ساخته و روی GitHub Pages منتشر کرده بودم. آن را برای بررسی به‌عنوان خروجی هفته‌ی اول ارائه می‌کنم؛ اگر ساخت پروژه‌ی جدید لازم باشد، سایت دیگری می‌سازم.\n\nدر کارهای اخیر Git را تمرین کردم: دریافت مخزن با git clone، آماده‌سازی فایل‌ها با git add، ثبت تغییرات با git commit و ارسال آن‌ها با git push. دستیار من ChatGPT بود.","problems":"ابتدا به‌جای git clone فقط clone نوشتم. بعد فایل‌ها به‌صورت untracked نمایش داده شدند و برای ثبت آماده نبودند. با توضیح مرحله‌به‌مرحله‌ی ChatGPT پیام‌ها را فهمیدم و با git add، git commit و git push فایل‌ها را ارسال کردم.","prompts":"سؤال‌های مشخص درباره‌ی خطاهای Git و درخواست توضیح قدم‌به‌قدم مفید بودند. فرستادن متن دقیق خروجی ترمینال به حل مشکل کمک کرد. این توضیح، خلاصه‌ی سؤال‌هاست و نقل‌قول دقیق تاریخچه‌ی پرامپت‌ها نیست.","next":"تمرین کار با branch و تقویت مبانی HTML/CSS. دریافت بازخورد درباره‌ی پذیرفته شدن سایت قبلی برای تمرین هفته‌ی اول.","other":"زمان تخمینی این پروژه: حدود ۶ ساعت. سایت پیش از دریافت تمرین ساخته شده بود؛ زمان اعلام‌شده تخمینی است و ثبت دقیق ساعتی نیست. لینک اجرا و مخزن در پایین گزارش آمده‌اند."},{"learned":"با کمک ChatGPT روی Forest Planner کار کردم. برنامه از React و Vite استفاده می‌کند و روی GitHub Pages قابل اجراست. یاد گرفتم که قرار دادن کد در مخزن با ساخت و انتشار برنامه متفاوت است.\n\nساختار کلی و کاربرد فایل‌ها را متوجه شده‌ام، اما به‌دلیل حجم کد هنوز تمام خط‌ها را دقیق بررسی نکرده‌ام و نمی‌توانم همه‌ی فایل‌ها را کامل توضیح بدهم.","problems":"تبدیل کد آپلودشده به برنامه‌ی آنلاین یکی از چالش‌ها بود. با کمک ChatGPT، GitHub Pages را فعال و فرایند GitHub Actions را تنظیم کردم. مسیر /Forest-Planner/ در ساخت برنامه لحاظ شد. فرایند انتشار موفق بود و برنامه را از لینک عمومی باز کردم.","prompts":"سؤال درباره‌ی نحوه‌ی انتشار پروژه‌ی React/Vite روی GitHub Pages مفید بود. فرستادن package.json، تصویر صفحه و درخواست راهنمایی قدم‌به‌قدم هم کمک کرد. این مثال‌ها بازگویی مضمون سؤال‌ها هستند.","next":"مرور منظم فایل‌ها و یادگیری توضیح مستقل توابع مهم. بررسی مشخص ذخیره و بازیابی داده‌های برنامه. دریافت بازخورد درباره‌ی مطابقت پروژه با تمرین و اصلاح یا ساخت دوباره در صورت نیاز. شرط توانایی توضیح تمام فایل‌ها هنوز کاملاً انجام نشده است.","other":"زمان تخمینی این پروژه: حدود ۶ ساعت. دستیار: ChatGPT. برنامه منتشر شده است، اما بررسی دقیق کد همچنان ادامه دارد."}]};
-for(let i=0;i<2;i++){weeks[i].hours='6';weeks[i].status=1;for(const l of ['de','en','fa'])Object.assign(weeks[i].text[l],weeklyReports[l][i]);}
+
+// Add week 3 without changing weeks 1 and 2.
+weeks[2].live =
+  "https://karimzade.github.io/Forest-Planner-Mobile/";
+
+weeks[2].repo =
+  "https://github.com/Karimzade/Forest-Planner-Mobile";
+
+weeks[2].status = 2;
+weeks[2].hours = '8';
+
+Object.assign(weeks[2].text.de, {
+  title: "Forest Planner · Mobile App",
+  learned:
+    "Mit Unterstützung von ChatGPT habe ich die überarbeitete Web-App als separates Projekt mit Expo und React Native umgesetzt. Ich habe gelernt, Abhängigkeiten zu installieren, das Projekt zu starten und die App mit Expo Go auf meinem Android-Smartphone zu öffnen. Zusätzlich habe ich eine Browser-Version über GitHub Pages veröffentlicht.",
+  problems:
+    "Der integrierte Bildschirmrekorder war auf meinem Smartphone nicht verfügbar. Nach einem Versuch mit einer anderen App habe ich Open Recorder installiert und damit die Bildschirmaufnahme erstellt. Die Browser-Version nutzte zunächst die gesamte Desktop-Breite; anschließend habe ich die maximale Breite auf 480 Pixel begrenzt.",
+  prompts:
+    "Hilfreich waren schrittweise Anleitungen mit jeweils einem Arbeitsschritt sowie Erklärungen anhand meiner Terminal-Ausgaben und Screenshots. Die Umsetzung entstand mit KI-Unterstützung.",
+  next:
+    "Die Dateien weiter durcharbeiten und die wichtigsten Funktionen selbst erklären lernen. Rückmeldung von Sam einholen.",
+  other:
+    "Die Bildschirmaufnahme zeigt die App auf meinem eigenen Smartphone in Expo Go. Der Projektlink öffnet zusätzlich die Browser-Version. Web- und Mobilversion haben getrennte lokale Datenspeicher."
+});
+
+Object.assign(weeks[2].text.en, {
+  title: "Forest Planner · Mobile app",
+  learned:
+    "With ChatGPT's help, I adapted the revised web app into a separate Expo and React Native project. I learned to install dependencies, start the project and open it in Expo Go on my Android phone. I also published a browser version using GitHub Pages.",
+  problems:
+    "My phone did not offer a built-in screen recorder. After trying another app, I installed Open Recorder and recorded the demonstration. The browser version initially filled the desktop width, so I limited its maximum width to 480 pixels.",
+  prompts:
+    "Step-by-step instructions, terminal output and screenshots helped me work through the setup and publication. The implementation was created with AI assistance.",
+  next:
+    "Continue studying the files and learn to explain the main functions myself. Ask Sam for feedback.",
+  other:
+    "The recording shows the app running in Expo Go on my own phone. The project link also provides a browser preview. The web and mobile versions store their data separately."
+});
+
+Object.assign(weeks[2].text.fa, {
+  title: "Forest Planner · اپلیکیشن موبایل",
+  learned:
+    "با کمک ChatGPT، نسخهٔ اصلاح‌شدهٔ وب را در پروژه‌ای جدا با Expo و React Native به نسخهٔ موبایل تبدیل کردم. نصب وابستگی‌ها، اجرای پروژه و بازکردن اپ در Expo Go روی گوشی اندروید را یاد گرفتم. نسخهٔ مرورگری را هم با GitHub Pages منتشر کردم.",
+  problems:
+    "گوشی من ضبط صفحهٔ داخلی نداشت. پس از امتحان یک برنامهٔ دیگر، Open Recorder را نصب و فیلم را ضبط کردم. نسخهٔ مرورگری ابتدا تمام عرض دسکتاپ را می‌گرفت؛ حداکثر عرض را به ۴۸۰ پیکسل محدود کردم.",
+  prompts:
+    "راهنمایی دانه‌به‌دانه، فرستادن خروجی ترمینال و تصاویر خطاها برای رفع مشکلات مفید بود. پیاده‌سازی با کمک هوش مصنوعی انجام شد.",
+  next:
+    "مطالعهٔ بیشتر فایل‌ها و یادگیری توضیح عملکرد بخش‌های اصلی کد؛ دریافت بازخورد سام.",
+  other:
+    "فیلم، اجرای برنامه در Expo Go روی گوشی خودم را نشان می‌دهد. لینک پروژه پیش‌نمایش مرورگری را هم باز می‌کند. داده‌های نسخهٔ وب و موبایل جداگانه ذخیره می‌شوند."
+});
 
 Object.assign(onlineText.de,{liveNote:'Öffentliche Demo. Änderungen in den Eingabefeldern werden nicht gespeichert. Die Berichte werden über die HTML-Datei auf GitHub aktualisiert.',saved:'Demo · Veröffentlichter Stand',owner:'Demo-Ansicht'});
 Object.assign(onlineText.en,{liveNote:'Public demo. Edits in the fields are not saved. Reports are updated through the HTML file on GitHub.',saved:'Demo · Published version',owner:'Demo view'});
